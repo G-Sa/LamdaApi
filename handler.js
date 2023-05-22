@@ -12,33 +12,33 @@ import {
 
 app.use(bodyParser.json());
 
-app.get("/", (req, res, next) => {
+app.get("/", (req, res) => {
   return res.status(200).json({
     message: "Hello from root!",
   });
 });
 
-app.get("/property", async (req, res, next) => {
+app.get("/property", async (req, res) => {
   return await listProperties(req, res);
 });
 
-app.get("/property/:id", (req, res, next) => {
+app.get("/property/:id", async (req, res) => {
   return getPropertyById(req, res);
 });
 
-app.post("/property", (req, res, next) => {
-  return createProperty(req, res);
+app.post("/property", async (req, res) => {
+  return await createProperty(req, res);
 });
 
-app.put("/property/:id", (req, res, next) => {
+app.put("/property/:id", async (req, res) => {
   return updateProperty(req, res);
 });
 
-app.delete("/property/:id", (req, res, next) => {
+app.delete("/property/:id", async (req, res) => {
   return deleteProperty(req, res);
 });
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   return res.status(404).json({
     error: "Not Found",
   });

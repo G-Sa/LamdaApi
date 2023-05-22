@@ -10,79 +10,37 @@ const client = new Client({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
 })
+client.connect()
+    .catch((err) => console.error('connection error', err.stack))
+
 
 const getProperties = async () => {
-  client
-  .connect()
-  .then(() => console.log('connected'))
-  .catch((err) => console.error('connection error', err.stack))
-  // console.log (await client.query('SELECT NOW()'));
-
-  console.log(await client.query('SELECT * FROM properties ORDER BY id ASC'));
-
-  // console.log('getProperties')
-  //   pool.query('SELECT NOW()', (err, result) => {
-  //     if (err) {
-  //       return console.error('Error executing query', err.stack)
-  //     }
-  //     console.log(result.rows)
-  //   })
-
-  //   pool.query('SELECT * FROM properties ORDER BY id ASC', (error, result) => {
-  //       if (error) {
-  //         throw error
-  //       }
-  //       console.log(result.rows)
-  //       result.rows
-  //     })
+  let response = await client.query('SELECT * FROM properties ORDER BY id ASC')
+  return response.rows;
 }
 
-const getPropertyById = (id, results) => {  
-    pool.query('SELECT * FROM properties WHERE id = $1', [id], (error, results) => {
-      if (error) {
-        throw error
-      }
-      return results.rows
-    })
+const getPropertyById = async (id) => {  
+  let response = await client.query('SELECT * FROM properties WHERE id = $1', [id])
+  return response.rows;
 }
 
-const createProperty = (property, results) => {
-    const { owner, address, city, state, zip_code} = property;
-    let response;
-    pool.query('INSERT INTO properties (owner, address, city, state, zip_code) VALUES ($1, $2, $3, $4, $5)',
-     [owner, address, city, state, zip_code], (error, results) => {
-        if (error) {
-          throw error
-        }
-        console.log('results')
-        console.log(results.rows[0])
-        response = results.rows
-      })
-      console.log(response);
+const createProperty = async (property) => {
+  const { owner, address, city, state, zip_code} = property;
+  let response =  await client.query('INSERT INTO properties (owner, address, city, state, zip_code) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+    [owner, address, city, state, zip_code])
+  return response.rows[0];
 }
 
-const updateProperty = (id, property, results) => {
-    const { owner, address, city, state, zip_code} = property
-  
-    pool.query(
-      'UPDATE properties SET owner = $1, address = $2, city = $3, state = $4, zip_code = $5 WHERE id = $6',
-      [owner, address, city, state, zip_code, id],
-      (error, results) => {
-        if (error) {
-          throw error
-        }
-        return results.rows
-      }
-    )
+const updateProperty = async (id, property) => {
+  const { owner, address, city, state, zip_code} = property
+  let response = await client.query('UPDATE properties SET owner = $1, address = $2, city = $3, state = $4, zip_code = $5 WHERE id = $6 RETURNING *',
+    [owner, address, city, state, zip_code, id]);
+  return response.rows[0];
 }
 
-const deleteProperty = (id, results) => {  
-    pool.query('DELETE FROM properties WHERE id = $1', [id], (error, results) => {
-      if (error) {
-        throw error
-      }
-      return results.rows
-    })
+const deleteProperty = async (id) => {
+  let response = await client.query('DELETE FROM properties WHERE id = $1 RETURNING *', [id])  
+  return response.rows[0];
 }
 
 export default {
